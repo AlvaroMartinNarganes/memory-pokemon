@@ -1,34 +1,49 @@
 import { useState } from 'react';
 import { Card } from 'react-bootstrap';
 import PokeAPI from 'pokedex-promise-v2';
+import { SelectedCardType } from '../App';
 
 function CardPokemon({
   pkmnProps,
-  infoSelectedCard,
+  isSelected,
+  setSelectedCards,
+  index,
+  isInputBlocked,
 }: {
   pkmnProps: PokeAPI.Pokemon;
-  infoSelectedCard: any;
+  isSelected: boolean;
+  setSelectedCards: React.Dispatch<React.SetStateAction<SelectedCardType[]>>;
+  index: number;
+  isInputBlocked: boolean;
 }) {
-  const [showCard, setFlip] = useState(false);
   const flipCard = () => {
-    //Flip the card
-    setFlip(true);
-    //Send the Id to the parent to compare with the second
-    infoSelectedCard(pkmnProps.name);
-  };
+    setSelectedCards((currentSelectedCards) => {
+      const newSelectedCards: SelectedCardType[] = [...currentSelectedCards];
 
-  const resetCard = () => {
-    setFlip(false);
+      newSelectedCards.push({
+        indexSelected: index,
+        pokemon: pkmnProps,
+      });
+
+      return newSelectedCards;
+    });
   };
 
   return (
-    <Card style={{ width: '10rem' }} onClick={flipCard} className='card'>
-      {!showCard && (
+    <Card
+      style={{
+        width: '10rem',
+        pointerEvents: isInputBlocked ? 'none' : 'auto',
+      }}
+      onClick={flipCard}
+      className='card'
+    >
+      {!isSelected && (
         <div>
           <Card.Img src='pkmnLogo.png' />
         </div>
       )}
-      {showCard && (
+      {isSelected && (
         <div>
           <Card.Title>{pkmnProps.name}</Card.Title>
           <Card.Img src={pkmnProps.sprites.front_default!} />

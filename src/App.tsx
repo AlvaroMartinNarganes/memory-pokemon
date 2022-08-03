@@ -1,11 +1,17 @@
 import './App.scss';
 import Button from 'react-bootstrap/Button';
 import Pokedex from 'pokedex-promise-v2';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CardPokemon from './components/CardPokemon';
 import Timer from './components/Timer';
 import PokeAPI from 'pokedex-promise-v2';
 import { Container, Row, Col } from 'react-bootstrap';
+import { CompareCardsHook } from './hooks/compareCardsHook';
+
+export type SelectedCardType = {
+  pokemon: PokeAPI.Pokemon;
+  indexSelected: number;
+};
 
 function App() {
   const pokedex = new Pokedex();
@@ -55,21 +61,55 @@ function App() {
   };
 
   //Control Game
-  const [selectedCard, setSelectedData] = useState<string>('');
+  const [selectedCards, setSelectedCards] = useState<SelectedCardType[]>([]);
+  const [correctCards, setCorrectCards] = useState<number[]>([]);
   const [trys, addTry] = useState(0);
-  const infoSelectedCard = (card: string) => {
-    //Set the first card
-    if (selectedCard === '') {
-      setSelectedData(card);
-    } else {
-      if (card === selectedCard) {
-        //Correct-> Add a point, block the cards
-      } else {
-        //Flip cards Again (ONLY SELECTEDCARD AND ACTUAL CARD)
+  const [isInputBlocked, setIsInputBlocked] = useState<boolean>(false); //Block the click
+
+  const setTimeOutPromise = (delay: number) => {
+    return new Promise((resolve) => setTimeout(resolve, delay));
+  };
+
+  const emptySelectedCards = async () => {
+    setIsInputBlocked(true);
+    await setTimeOutPromise(1000);
+    setSelectedCards([]);
+    setIsInputBlocked(false);
+  };
+
+  //Control Game
+  useEffect(() => {
+    if (selectedCards.length == 2) {
+      if (selectedCards[0].pokemon.id !== selectedCards[1].pokemon.id) {
+        console.log('NO COINCIDEN');
+        emptySelectedCards();
+        return;
       }
-      setSelectedData('');
-      addTry((trys) => trys + 1);
+      //Match
+      setCorrectCards((currentCorrectCards) => {
+        return [
+          ...currentCorrectCards,
+          selectedCards[0].indexSelected,
+          selectedCards[1].indexSelected,
+        ];
+      });
+      setSelectedCards([]);
+      //Sumar Puntos
+      addTry(trys + 1);
+      console.log('Coinciden');
     }
+  }, [selectedCards]);
+
+  const isCardSelected = (checkCard: PokeAPI.Pokemon, index: number) => {
+    return selectedCards.some(
+      (selectedCard) =>
+        selectedCard.pokemon === checkCard &&
+        selectedCard.indexSelected === index,
+    );
+  };
+
+  const isCardCorrect = (index: number) => {
+    return correctCards.some((correctCardIndex) => correctCardIndex === index);
   };
 
   return (
@@ -92,11 +132,11 @@ function App() {
         <section>
           <Container>
             <Row>
-              <Col lg={4}>Intentos: {trys}</Col>
+              <Col lg={4}>Puntos: {trys}</Col>
               <Col lg={4}>
                 <Timer active={activeTimer} />
               </Col>
-              <Col lg={4}>Parejas restantes:{selectedCard}</Col>
+              <Col lg={4}>Parejas restantes:</Col>
             </Row>
           </Container>
           <Container>
@@ -105,8 +145,12 @@ function App() {
                 <Col lg={rowsNumber} key={index}>
                   <CardPokemon
                     pkmnProps={item}
-                    key={index}
-                    infoSelectedCard={infoSelectedCard}
+                    isSelected={
+                      isCardCorrect(index) || isCardSelected(item, index)
+                    }
+                    setSelectedCards={setSelectedCards}
+                    isInputBlocked={isInputBlocked}
+                    index={index}
                   />
                 </Col>
               ))}
