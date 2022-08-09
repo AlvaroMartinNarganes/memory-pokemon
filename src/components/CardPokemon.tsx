@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Card } from 'react-bootstrap';
 import PokeAPI from 'pokedex-promise-v2';
 import { SelectedCardType } from '../App';

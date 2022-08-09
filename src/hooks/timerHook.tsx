@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 
-//My first hook
-const TimerHook = () => {
-  const [seconds, setSeconds] = useState(60);
+type Props = {
+  defaultSeconds: number;
+  active: boolean;
+};
 
+const TimerHook = ({ defaultSeconds, active }: Props) => {
+  const [seconds, setSeconds] = useState(defaultSeconds);
+  if (!active && seconds != 60) setSeconds(60);
   useEffect(() => {
-    seconds > 0 && setTimeout(() => setSeconds(seconds - 1), 1000);
-  }, [seconds]);
+    seconds > 0 && active && setTimeout(() => setSeconds(seconds - 1), 1000);
+  }, [seconds, active]);
 
   return seconds;
 };

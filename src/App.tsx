@@ -3,14 +3,20 @@ import Button from 'react-bootstrap/Button';
 import Pokedex from 'pokedex-promise-v2';
 import { useState, useEffect } from 'react';
 import CardPokemon from './components/CardPokemon';
-import Timer from './components/Timer';
+import { Timer } from './components/Timer';
 import PokeAPI from 'pokedex-promise-v2';
-import { Container, Row, Col } from 'react-bootstrap';
-import { CompareCardsHook } from './hooks/compareCardsHook';
+import { Container, Row, Col, Image } from 'react-bootstrap';
+import { ModalEndGame } from './components/ModalEndGame';
+import { EndGameHook } from './hooks/endGameHook';
 
 export type SelectedCardType = {
   pokemon: PokeAPI.Pokemon;
   indexSelected: number;
+};
+
+export type EndGameEvent = {
+  end: boolean;
+  win?: boolean | undefined;
 };
 
 function App() {
@@ -18,12 +24,24 @@ function App() {
   const [infoPokemon, setPokemonResponse] = useState<any>([]); //Object of Pokemon
   const [rowsNumber, setRowsNumber] = useState(3); //Number of rows
   const [activeTimer, setTimer] = useState<boolean>(false); //Control timer
+  const [selectedCards, setSelectedCards] = useState<SelectedCardType[]>([]); //Array to save the selected cards and compare
+  const [correctCards, setCorrectCards] = useState<number[]>([]); //Array to save the position of the correct cards
+  const [trys, addTry] = useState(0); //Control trys
+  const [isInputBlocked, setIsInputBlocked] = useState<boolean>(false); //Block the click
+  const [couples, setCouples] = useState<number>(8);
+  //const [endGame, setEndGame] = useState(false);
+  const [endGame, setEndGame] = useState<EndGameEvent>({ end: false });
 
   /**
+   * Start game
    * Load a number of Pokemons from all the pokedex and load them to cards
    * @param numberOfPkmn Number of Pokemon
    */
   const loadPokemon = (numberOfPkmn: number) => {
+    //Default values
+    addTry(0);
+    setCorrectCards([]);
+
     //Adjust the table
     switch (numberOfPkmn) {
       case 8:
@@ -38,6 +56,9 @@ function App() {
       default:
         break;
     }
+
+    setCouples(numberOfPkmn);
+
     //Save random Ids
     var pokemonIds = [];
     var i = numberOfPkmn - 1;
@@ -56,20 +77,16 @@ function App() {
     pokedex.getPokemonByName(pokemonIds).then((response) => {
       setPokemonResponse(response);
       //StartTimer when the cards are loaded
-      setTimer((activeTimer) => (activeTimer = !activeTimer));
+      setTimer(true);
     });
   };
 
-  //Control Game
-  const [selectedCards, setSelectedCards] = useState<SelectedCardType[]>([]);
-  const [correctCards, setCorrectCards] = useState<number[]>([]);
-  const [trys, addTry] = useState(0);
-  const [isInputBlocked, setIsInputBlocked] = useState<boolean>(false); //Block the click
-
+  //Block the game 1 second
   const setTimeOutPromise = (delay: number) => {
     return new Promise((resolve) => setTimeout(resolve, delay));
   };
 
+  //Clean the array of selected cards and block the input to prevent bugs in the game
   const emptySelectedCards = async () => {
     setIsInputBlocked(true);
     await setTimeOutPromise(1000);
@@ -79,13 +96,15 @@ function App() {
 
   //Control Game
   useEffect(() => {
-    if (selectedCards.length == 2) {
+    //Two cards selected
+    if (selectedCards.length === 2) {
+      //Don´t match -> clean the selectedCards Array/ Hidde the cards
       if (selectedCards[0].pokemon.id !== selectedCards[1].pokemon.id) {
-        console.log('NO COINCIDEN');
         emptySelectedCards();
-        return;
+        addTry(trys + 1);
+        return; //Go out of the use effect
       }
-      //Match
+      //Match -> Add the two cards to Correct card array so they keep showing/ add a point
       setCorrectCards((currentCorrectCards) => {
         return [
           ...currentCorrectCards,
@@ -93,10 +112,9 @@ function App() {
           selectedCards[1].indexSelected,
         ];
       });
-      setSelectedCards([]);
-      //Sumar Puntos
+      setSelectedCards([]); //Just clean the array, don´t need block the input
       addTry(trys + 1);
-      console.log('Coinciden');
+      setCouples(couples - 1);
     }
   }, [selectedCards]);
 
@@ -112,10 +130,13 @@ function App() {
     return correctCards.some((correctCardIndex) => correctCardIndex === index);
   };
 
+  //Control win
+  EndGameHook({ couples, setEndGame });
+
   return (
     <div className='App'>
       <header className='App-header'>
-        <h1>POKEMON</h1>
+        <h1>Memory Game</h1>
       </header>
       <main>
         <section>
@@ -132,14 +153,14 @@ function App() {
         <section>
           <Container>
             <Row>
-              <Col lg={4}>Puntos: {trys}</Col>
+              <Col lg={4}>Intentos: {trys}</Col>
               <Col lg={4}>
-                <Timer active={activeTimer} />
+                <Timer active={activeTimer} setEndGame={setEndGame} />
               </Col>
-              <Col lg={4}>Parejas restantes:</Col>
+              <Col lg={4}>Parejas restantes: {couples}</Col>
             </Row>
           </Container>
-          <Container>
+          <Container className='game'>
             <Row>
               {infoPokemon.map((item: PokeAPI.Pokemon, index: number) => (
                 <Col lg={rowsNumber} key={index}>
@@ -158,6 +179,13 @@ function App() {
           </Container>
         </section>
       </main>
+      <ModalEndGame
+        trys={trys}
+        endGame={endGame}
+        setEndGame={setEndGame}
+        loadPokemon={loadPokemon}
+        setTimer={setTimer}
+      />
     </div>
   );
 }
