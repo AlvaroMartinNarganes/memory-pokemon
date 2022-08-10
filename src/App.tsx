@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import CardPokemon from './components/CardPokemon';
 import { Timer } from './components/Timer';
 import PokeAPI from 'pokedex-promise-v2';
-import { Container, Row, Col, Image } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import { ModalEndGame } from './components/ModalEndGame';
 import { EndGameHook } from './hooks/endGameHook';
 
@@ -29,19 +29,21 @@ function App() {
   const [trys, addTry] = useState(0); //Control trys
   const [isInputBlocked, setIsInputBlocked] = useState<boolean>(false); //Block the click
   const [couples, setCouples] = useState<number>(8);
-  //const [endGame, setEndGame] = useState(false);
   const [endGame, setEndGame] = useState<EndGameEvent>({ end: false });
+  const [disabledButtons, disableButtons] = useState(false);
 
   /**
    * Start game
    * Load a number of Pokemons from all the pokedex and load them to cards
    * @param numberOfPkmn Number of Pokemon
    */
-  const loadPokemon = (numberOfPkmn: number) => {
+  const loadGame = (numberOfPkmn: number) => {
     //Default values
     addTry(0);
     setCorrectCards([]);
 
+    //BlockButton
+    disableButtons(true);
     //Adjust the table
     switch (numberOfPkmn) {
       case 8:
@@ -73,12 +75,24 @@ function App() {
         i--;
       }
     }
+
+    //Shuffle
+    pokemonIds = shuffle(pokemonIds);
     //Send Ids and return info
     pokedex.getPokemonByName(pokemonIds).then((response) => {
       setPokemonResponse(response);
       //StartTimer when the cards are loaded
       setTimer(true);
     });
+  };
+
+  //Shuffle an array
+  const shuffle = (numbers: number[]) => {
+    for (let i = numbers.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+    }
+    return numbers;
   };
 
   //Block the game 1 second
@@ -131,27 +145,46 @@ function App() {
   };
 
   //Control win
-  EndGameHook({ couples, setEndGame });
+  EndGameHook({ couples, setEndGame, setTimer });
 
   return (
     <div className='App'>
       <header className='App-header'>
         <h1>Memory Game</h1>
+        <a
+          href='https://github.com/AlvaroMartinNarganes/memory-pokemon'
+          title='Ver el proyecto'
+        >
+          <img src='GitHubLogo.png' alt='GitHub Logo' />
+        </a>
       </header>
+
       <main>
         <section>
-          <Button variant='light' onClick={() => loadPokemon(8)}>
+          <Button
+            variant='light'
+            onClick={() => loadGame(8)}
+            disabled={disabledButtons}
+          >
             Facil
           </Button>
-          <Button variant='light' onClick={() => loadPokemon(12)}>
+          <Button
+            variant='light'
+            onClick={() => loadGame(12)}
+            disabled={disabledButtons}
+          >
             Normal
           </Button>
-          <Button variant='light' onClick={() => loadPokemon(15)}>
+          <Button
+            variant='light'
+            onClick={() => loadGame(15)}
+            disabled={disabledButtons}
+          >
             Dificil
           </Button>
         </section>
         <section>
-          <Container>
+          <Container className='mb-3'>
             <Row>
               <Col lg={4}>Intentos: {trys}</Col>
               <Col lg={4}>
@@ -163,7 +196,7 @@ function App() {
           <Container className='game'>
             <Row>
               {infoPokemon.map((item: PokeAPI.Pokemon, index: number) => (
-                <Col lg={rowsNumber} key={index}>
+                <Col align='center' lg={rowsNumber} key={index}>
                   <CardPokemon
                     pkmnProps={item}
                     isSelected={
@@ -183,7 +216,7 @@ function App() {
         trys={trys}
         endGame={endGame}
         setEndGame={setEndGame}
-        loadPokemon={loadPokemon}
+        loadGame={loadGame}
         setTimer={setTimer}
       />
     </div>

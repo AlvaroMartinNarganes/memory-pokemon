@@ -13,6 +13,11 @@
   font-size: calc(10px + 2vmin);
   color: white;
   height: 120px;
+  a{
+    position: absolute;
+    right: 50px;
+    top: 25px;
+  }
 }
 
 
@@ -22,6 +27,7 @@
   width: 10rem;
   height: 10rem;
   margin: 2px;
+  justify-content: center;
   img{
     width: 6rem;
     height: 6rem;

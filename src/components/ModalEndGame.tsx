@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { EndGameEvent } from '../App';
 
@@ -6,7 +5,7 @@ type Props = {
   trys: number;
   endGame: EndGameEvent;
   setEndGame: any;
-  loadPokemon: any;
+  loadGame: any;
   setTimer: any;
 };
 
@@ -14,13 +13,13 @@ export const ModalEndGame = ({
   trys,
   endGame,
   setEndGame,
-  loadPokemon,
+  loadGame,
   setTimer,
 }: Props) => {
   //const [show, setShow] = useState(false);
   const handleClose = () => {
     setTimer(false);
-    loadPokemon(8);
+    loadGame(8);
     setEndGame({ end: false });
   };
   //const handleShow = () => setEndGame(true);
@@ -31,9 +30,9 @@ export const ModalEndGame = ({
       backdrop='static'
       keyboard={false}
     >
-      <Modal.Header closeButton>
-        {endGame.win == true && <Modal.Title>HAS GANADO</Modal.Title>}
-        {endGame.win == false && <Modal.Title>HAS PERDIDO</Modal.Title>}
+      <Modal.Header>
+        {endGame.win === true && <Modal.Title>HAS GANADO</Modal.Title>}
+        {endGame.win === false && <Modal.Title>HAS PERDIDO</Modal.Title>}
       </Modal.Header>
       <Modal.Body>INTENTOS: {trys}</Modal.Body>
       <Modal.Footer>
