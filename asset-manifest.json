@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/AlvaroMartinNarganes/memory-pokemon/static/css/main.84fe67d5.css",
+    "main.js": "/AlvaroMartinNarganes/memory-pokemon/static/js/main.16477667.js",
+    "static/js/787.fc7baf39.chunk.js": "/AlvaroMartinNarganes/memory-pokemon/static/js/787.fc7baf39.chunk.js",
+    "index.html": "/AlvaroMartinNarganes/memory-pokemon/index.html",
+    "main.84fe67d5.css.map": "/AlvaroMartinNarganes/memory-pokemon/static/css/main.84fe67d5.css.map",
+    "main.16477667.js.map": "/AlvaroMartinNarganes/memory-pokemon/static/js/main.16477667.js.map",
+    "787.fc7baf39.chunk.js.map": "/AlvaroMartinNarganes/memory-pokemon/static/js/787.fc7baf39.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.84fe67d5.css",
+    "static/js/main.16477667.js"
+  ]
+}
